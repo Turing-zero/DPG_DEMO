@@ -4,7 +4,7 @@ from BASE.GlobalData import PARAM as param
 import numpy as np
 import BASE.Utils as utils
 import math
-import UI.Components as componets
+import UI.Components as components
 # 保存页面布局
 def save_callback(sender, app_data, user_data):
     dpg.save_init_file("dpg_layout.ini")
@@ -58,12 +58,18 @@ def set_field_size(sender, app_data, user_data):
     param.field.width = w
     param.field.height = h
     param.field.size = [w,h]
-    print(param.field.size)
 
 def mouse_wheel_handler(sender, app_data):
-    mouse_x,mouse_y = dpg.get_mouse_pos()
-    if (mouse_x < param.canvs.width and mouse_y < param.canvs.height):
-        # app_data 包含滚轮滚动的值
+    mouse_x, mouse_y = dpg.get_mouse_pos()
+    use_draw_pos =  not (abs(mouse_y) < 10000 and abs(mouse_x) < 10000)
+    if use_draw_pos:
+        mouse_x, mouse_y = dpg.get_drawing_mouse_pos()
+    dpg.focus_item("canvs")
+    if mouse_x < param.canvs.width and mouse_y < param.canvs.height:
+        # 计算当前鼠标在世界坐标系中的位置
+        world_mouse_x = (mouse_x - param.canvs.translation[0]) / data.PARAM.mouse.scale
+        world_mouse_y = (mouse_y - param.canvs.translation[1]) / data.PARAM.mouse.scale
+        # 根据滚轮值调整缩放比例
         if data.PARAM.mouse.scale >= 0.3:
             step = 0.05
         else:
@@ -72,15 +78,61 @@ def mouse_wheel_handler(sender, app_data):
             data.PARAM.mouse.scale += step
         else:
             data.PARAM.mouse.scale -= step
-        data.PARAM.mouse.scale = max(0.08, data.PARAM.mouse.scale)
+        data.PARAM.mouse.scale = max(0.03, data.PARAM.mouse.scale)
         data.PARAM.mouse.scale = min(1.2, data.PARAM.mouse.scale)
-        print(data.PARAM.mouse.scale)
-        param.canvs.scales = [param.mouse.scale, param.mouse.scale, 1]
+        param.canvs.scales = [data.PARAM.mouse.scale, data.PARAM.mouse.scale, 1]
         param.canvs.scale_matrix = dpg.create_scale_matrix(param.canvs.scales)
+        # 计算新的平移量，以使缩放后的鼠标位置与缩放前相同
+        new_translation_x = mouse_x - world_mouse_x * param.canvs.scales[0]
+        new_translation_y = mouse_y - world_mouse_y * param.canvs.scales[1]
+        param.canvs.translation = [new_translation_x, new_translation_y, 0]
+        param.canvs.translation_matrix = dpg.create_translation_matrix(param.canvs.translation)
 
 def window_resize_handler():
     pass
-    # # 平移
-    # translation_vector = [param.canvs.width / 2,param.canvs.height / 2,1]
-    # translation_matrix = dpg.create_translation_matrix(translation_vector)
-    # dpg.apply_transform("canvs", translation_matrix)
+
+def layer_car_checkbox(sender,app_data,user_data):
+    car_tag = sender[6:]
+    obj = user_data
+    if app_data:
+        obj.layer_car_show_control.append(car_tag)
+    else:
+        obj.layer_car_show_control.remove(car_tag)
+
+def layer_debug_text_checkbox(sender,app_data,user_data):
+    obj = user_data
+    if app_data:
+        obj.layer_show_debug_text = True
+    else:
+        obj.layer_show_debug_text = False
+
+def layer_debug_line_checkbox(sender,app_data,user_data):
+    obj = user_data
+    if app_data:
+        obj.layer_show_debug_line = True
+    else:
+        obj.layer_show_debug_line = False
+
+def layer_debug_arc_checkbox(sender,app_data,user_data):
+    obj = user_data
+    if app_data:
+        obj.layer_show_debug_arc = True
+    else:
+        obj.layer_show_debug_arc = False
+
+
+
+def layer_drop(sender, app_data, user_data):
+    swap_item = dpg.get_value("dragged_item")
+    swap_items(sender,swap_item)
+
+def layer_get_drag_item(sender):
+    dpg.set_value(item="dragged_item",value=sender)
+# 交换两个项目的位置
+def swap_items(item1, item2):
+    parent1 = dpg.get_item_parent(item1)
+    parent2 = dpg.get_item_parent(item2)
+    dpg.move_item(item=item1,parent=parent2)
+    dpg.move_item(item=item2,parent=parent1)
+    utils.swap_elements(components.obj.layer_final,item1,item2)
+    print(components.obj.layer_final)

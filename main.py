@@ -2,7 +2,7 @@ import numpy as np
 import dearpygui.dearpygui as dpg
 import UI.Theme as theme
 import UI.Language.Language as language
-import UI.Components as component
+import UI.Components as components
 import UI.HotKey as hotkey
 import BASE.CallBack as callback
 import BASE.GlobalData as data
@@ -14,19 +14,19 @@ from BASE.GlobalData import PARAM as param
 # 初始化
 dpg.create_context()
 config = data.ConfigData
-obj = component.Object()
+obj = components.obj
 
 # 设置字体
 theme.set_font()
 # 当前语言
-label = component.label
+label = components.label
 # 设置主题
 theme.set_theme("Dark")
 # 创建主窗口
 with dpg.window(tag = "main_window",label=label["main_window"],no_close=True,no_collapse=True):
-    component.side_menu()
-    component.config_window()
-    component.plot_window()
+    components.side_menu()
+    components.config_window()
+    components.plot_window()
 # 注册热建
 with dpg.handler_registry():
     dpg.add_key_release_handler(callback=hotkey.on_key_release)
@@ -39,15 +39,18 @@ with dpg.handler_registry():
 
 # width, height = dpg.get_item_rect_size("side_menu_right")
 # param.canvs.translation = [width,height,0]
-
-data_thread = threading.Thread(target=lambda:vision.get_vision_data(obj), daemon=True)
-data_thread.start()
+vision_thread = threading.Thread(target=lambda:vision.get_vision_data(obj), daemon=True)
+debug_thread = threading.Thread(target=lambda:vision.get_debug_data(obj), daemon=True)
+debug_thread.start()
+vision_thread.start()
 dpg.configure_app(docking=True, docking_space=True, init_file="dpg_layout.ini", load_init_file=True)
 dpg.create_viewport(title=label["main_window"], width=800, height=600)
 dpg.setup_dearpygui()
 dpg.set_primary_window("main_window", False)
 dpg.show_viewport()
 dir = 0
+
+
 param.canvs.scale_matrix = dpg.create_scale_matrix(param.canvs.scale)
 param.canvs.translation_matrix = param.canvs.translation_matrix = dpg.create_translation_matrix([500,500])
 # 主循环
@@ -58,39 +61,21 @@ while dpg.is_dearpygui_running():
     param.canvs.width = width
     param.canvs.height = height
     obj.clean_canvs()
-    # vision.get_vision_data(obj)
-    dpg.delete_item("config",children_only=True)
-    # 计算圆心位置
-    center_x = width / 2
-    center_y = height / 2
-    # obj.set_car(tag = "BLUE_1",dir = 0,show = True)
-    # obj.set_car(tag = "BLUE_2",dir = 0,show = True)
-    # obj.set_car(tag = "BLUE_3",dir = 0,show = True)
-    # vision.get_vision_data(obj)
-    # FPS
+    components.show_layer(obj)
     dpg.set_value("line_series",[list(obj.ball_data_time),list(obj.ball_data_vel)])
     dpg.fit_axis_data("xaxis")
-    delta_time =  dpg.get_delta_time()
-    if delta_time:
-        data.time.delta_time += delta_time
-        data.time.total_time += delta_time
-        if data.time.delta_time > 1:
-            config.fps = 1 / delta_time
-            data.time.delta_time = 0
+    
+    utils.get_fps()
     dpg.draw_text([width - 120, 10],  color=[255, 255, 255, 200], size=25,text="FPS：" + str(int(config.fps)),parent="config")
-    dpg.draw_text([10, 10],  color=[255, 255, 255, 200], size=25,text="(" + str(param.mouse.x) + ", " + str(param.mouse.y) + ")",parent="config")
     dpg.set_item_width("drawlist", width)
     dpg.set_item_height("drawlist", height - 20)
     x,y = dpg.get_drawing_mouse_pos()
-    param.mouse.x = x 
-    param.mouse.y = y
+    x_ssl,y_ssl = utils.mouse2ssl(x,y,param.canvs.translation_matrix,param.mouse.scale)
+    dpg.draw_text([10, 10],  color=[255, 255, 255, 200], size=25,text="(" + str(x_ssl) + ", " + str(y_ssl) + ")",parent="config")
     param.mouse.pos = [x,y]
     param.canvs.transform = param.canvs.translation_matrix * param.canvs.scale_matrix
-    # print(param.canvs.transform)
     dpg.apply_transform("canvs", param.canvs.transform)
-    obj.draw_field()
-    obj.show_car()
-    obj.draw_ball()
+    obj.draw_all()
     dpg.render_dearpygui_frame()
 dpg.start_dearpygui()
 dpg.destroy_context()

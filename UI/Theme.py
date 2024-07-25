@@ -44,7 +44,7 @@ def set_font():
     # 创建字体注册器
     with dpg.font_registry():
         # 加载字体，并设置字体大小为15
-        with dpg.font("./UI/Language/Font/BLACK-NORMAL.ttf", 20) as chinese_font:
+        with dpg.font("./UI/Language/Font/BLACK-NORMAL.ttf", 25,pixel_snapH=True) as chinese_font:
             # 添加字体范围提示，指定字体应包含完整的中文字符集
             dpg.add_font_range_hint(dpg.mvFontRangeHint_Chinese_Full)
             # 以下是其他语言的字符集

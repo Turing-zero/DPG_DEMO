@@ -1,6 +1,6 @@
 languages = {
     "en": {
-        "main_window" : "Plot Window",
+        "main_window" : "Draw Window",
         "dark_theme": "Dark",
         "light_theme": "Light",
         "theme_menu":"Themes",
@@ -10,7 +10,7 @@ languages = {
         "view_menu":"View",
     },
     "zh": {
-        "main_window" : "Plot Window",
+        "main_window" : "Draw Window",
         "dark_theme": "黑暗",
         "light_theme": "明亮",
         "theme_menu":"主题",

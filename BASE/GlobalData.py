@@ -22,10 +22,8 @@ class PARAM:
     class color:
         yellow = [255,255,0]
     class mouse:
-        x = 0
-        y = 0
         pos = [0,0]
-        scale = 0.5
+        scale = 1
         click_obj = "canvs"
         click_pos = [0,0]
         pos_last = [0,0]

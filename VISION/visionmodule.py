@@ -24,7 +24,7 @@ class VisionModule:
 
     def receive(self):
         data, addr = self.sock.recvfrom(65535)
-        sleep(0.0001) # wait for reading
+        # sleep(0.0001) # wait for reading
         return data
 
     def get_info(self, ROBOT_ID):
@@ -45,11 +45,11 @@ class DEBUG:
     def receive(self):
         data, addr = self.sock.recvfrom(65535)
         
-        sleep(0.0001)  # wait for reading
+        # sleep(0.0001)  # wait for reading
         return data
 
     def get_info(self):
         data = self.receive()
         debug_message = debugs.Debug_Msgs()
-        debug_message = debug_message.ParseFromString(data)
+        debug_message.ParseFromString(data)
         return debug_message
