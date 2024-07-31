@@ -165,9 +165,16 @@ class Object():
         dpg.draw_line(p1=camera.perspective_transform([0,3000]),p2=camera.perspective_transform([0,-3000]),parent="canvs",color = color,thickness = thickness)
         
         self.draw_circle_P(center=[0,0],radius=500,parent="canvs",color = color,thickness = thickness,perspective =True)
-        # if x == 4500:
-        #     dpg.draw_rectangle(pmax=[-4500,1000],pmin=[-3500,-1000],parent="canvs",color = color,thickness = thickness)
-        #     dpg.draw_rectangle(pmax=[3500,1000],pmin=[4500,-1000],parent="canvs",color = color,thickness = thickness)
+
+        dpg.draw_line(p1=camera.perspective_transform([-4500,1000]),p2=camera.perspective_transform([-3500,1000]),parent="canvs",color = color,thickness = thickness)
+        dpg.draw_line(p1=camera.perspective_transform([-3500,1000]),p2=camera.perspective_transform([-3500,-1000]),parent="canvs",color = color,thickness = thickness)
+        dpg.draw_line(p1=camera.perspective_transform([-3500,-1000]),p2=camera.perspective_transform([-4500,-1000]),parent="canvs",color = color,thickness = thickness)
+
+        dpg.draw_line(p1=camera.perspective_transform([4500,1000]),p2=camera.perspective_transform([3500,1000]),parent="canvs",color = color,thickness = thickness)
+        dpg.draw_line(p1=camera.perspective_transform([3500,1000]),p2=camera.perspective_transform([3500,-1000]),parent="canvs",color = color,thickness = thickness)
+        dpg.draw_line(p1=camera.perspective_transform([3500,-1000]),p2=camera.perspective_transform([4500,-1000]),parent="canvs",color = color,thickness = thickness)
+
+
     #清空画布
     def draw_debug(self):
         self.draw_text()
@@ -213,13 +220,19 @@ class Object():
             with dpg.draw_node(tag="debug_text_node",parent="canvs"):
                 for text in self.debug_text:
                     p1 = camera.perspective_transform(text[0])
-                    dpg.draw_text(pos=p1,text=text[1],size=text[2] * data.PARAM.mouse.scale * 0.5,color=self.color_transform[text[3]])
-
+                    dpg.draw_text(pos=p1,text=text[1],size=text[2] * data.PARAM.mouse.scale * 0.8,color=self.color_transform[text[3]])
+    def draw_camera(self):
+            # 获取相机数据
+            texture_data = utils.get_texture_data(data.camera)
+            dpg.set_value("texture_tag",texture_data)
+            dpg.draw_image("texture_tag",[-4500,-3000],[4500,3000],parent="canvs")
     def draw_all(self):
-        obj.draw_field()
-        obj.show_car()
-        obj.draw_debug()
-        obj.draw_ball()
+        
+        self.draw_camera()
+        self.draw_field()
+        self.show_car()
+        self.draw_debug()
+        self.draw_ball()
 
 def config_window():
     with dpg.window(tag="PARAM",label="PARAM"):
@@ -245,10 +258,11 @@ def draw_window():
     with dpg.drawlist(width=0, height=0,tag ="drawlist",delay_search=True):
         with dpg.draw_node(tag="bg"):
             pass
-        with dpg.draw_node(tag="config"):
-            dpg.draw_text([10, 10],  color=[255, 255, 255, 255], size=40, tag="fps",text="Hello, world!")
+        
         with dpg.draw_node(tag="canvs"):
             pass
+        with dpg.draw_node(tag="config"):
+            dpg.draw_text([10, 10],  color=[255, 255, 255, 255], size=40, tag="fps",text="Hello, world!")
 def console_window():
     with dpg.child_window(label="T_console_window",tag="console_window"):
         dpg.add_text("Console:")

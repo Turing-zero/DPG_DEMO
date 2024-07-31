@@ -17,8 +17,7 @@ def init_all(obj):
     print("Initializing...")
     # 初始化
     dpg.create_context()
-
-    config = data.ConfigData
+    #相机初始化
     camera.init_creame()
     # 设置字体
     theme.set_font()
@@ -46,6 +45,7 @@ def init_all(obj):
 
 
 def thread_start(obj):
+    # 接收数据线程
     print("Thread Starting...")
     vision_thread = threading.Thread(target=lambda:vision.get_vision_data(obj), daemon=True)
     debug_thread = threading.Thread(target=lambda:vision.get_debug_data(obj), daemon=True)
@@ -53,49 +53,57 @@ def thread_start(obj):
     camera_thread.start()
     debug_thread.start()
     vision_thread.start()
-    while data.camera is None:
-        pass
     print("Thread Started Successfully")
 
 def dpg_start_setup():
+    #初始化
     dpg.configure_app(docking=True, docking_space=True, init_file="dpg_layout.ini", load_init_file=True)
     dpg.create_viewport(title="LIVE SYSTEM", width=1920, height=1080)
     dpg.setup_dearpygui()
     dpg.set_primary_window("main_window", False)
     dpg.show_viewport()
+    # 纹理创建
     with dpg.texture_registry(show=False):
         texture_data = utils.get_texture_data(data.camera)
         dpg.add_raw_texture(data.camera.shape[1], data.camera.shape[0], texture_data, tag="texture_tag", format=dpg.mvFormat_Float_rgb)
+        
+def update_param_data():
+    param.mouse.pos_last = param.mouse.pos
+    # 获取窗口大小
+    width, height = dpg.get_item_rect_size("side_menu_right")
+    param.canvs.width = width
+    param.canvs.height = height
+    # 获取鼠标信息
+    x,y = dpg.get_drawing_mouse_pos()
+    data.PARAM.mouse.ssl_pos = utils.mouse2ssl(x,y,param.canvs.translation_matrix,param.mouse.scale)
+    data.PARAM.mouse.ssl_pos = data.PARAM.mouse.ssl_pos[0],-1*data.PARAM.mouse.ssl_pos[1]
+    x_ssl,y_ssl = data.PARAM.mouse.ssl_pos
+    # 设置画布宽高
+    dpg.set_item_width("drawlist", width)
+    dpg.set_item_height("drawlist", height - 20)
+    param.mouse.pos = [x,y]
+    # 组合变换矩阵
+    param.canvs.transform = param.canvs.translation_matrix * param.canvs.scale_matrix
+    # 绘制FPS 和 ssl坐标信息
+    dpg.draw_text([width - 120, 10],  color=[255, 255, 255, 200], size=25,text="FPS：" + str(int(dpg.get_frame_rate())),parent="config")
+    dpg.draw_text([10, 10],  color=[255, 255, 255, 200], size=25,text=f"({x_ssl} , {y_ssl})",parent="config")
+
 # 主循环
 
 def main(obj):
-    dpg.set_viewport_vsync(False)
     while dpg.is_dearpygui_running():
-        param.mouse.pos_last = param.mouse.pos
-        # 获取窗口大小
-        width, height = dpg.get_item_rect_size("side_menu_right")
-        param.canvs.width = width
-        param.canvs.height = height
+        #清空画布
         obj.clean_canvs()
-        texture_data = utils.get_texture_data(data.camera)
-        dpg.set_value("texture_tag",texture_data)
-        dpg.draw_image("texture_tag",[-4500,-3000],[4500,3000],parent="canvs")
-        data.PARAM.field.p_radius = 15 * data.PARAM.mouse.scale
+        # 更新一些全局参数
+        update_param_data()
+        # 添加调整图像的四个点
+        param.field.p_radius = 30 * param.mouse.scale
         for i in range(4):
-            dpg.draw_circle(center=data.PARAM.field.p[i],radius=data.PARAM.field.p_radius,fill=[0,255,0,200],parent="canvs",tag=f"p{i}")
-        dpg.draw_text([width - 120, 10],  color=[255, 255, 255, 200], size=25,text="FPS：" + str(int(dpg.get_frame_rate())),parent="config")
-        x,y = dpg.get_drawing_mouse_pos()
-        data.PARAM.mouse.ssl_pos = utils.mouse2ssl(x,y,param.canvs.translation_matrix,param.mouse.scale)
-        data.PARAM.mouse.ssl_pos = data.PARAM.mouse.ssl_pos[0],-1*data.PARAM.mouse.ssl_pos[1]
-        x_ssl,y_ssl = data.PARAM.mouse.ssl_pos
-        dpg.draw_text([10, 10],  color=[255, 255, 255, 200], size=25,text=f"({x_ssl} , {y_ssl})",parent="config")
-        dpg.set_item_width("drawlist", width)
-        dpg.set_item_height("drawlist", height - 20)
-        param.mouse.pos = [x,y]
-        param.canvs.transform = param.canvs.translation_matrix * param.canvs.scale_matrix
-        # 定义原始四边形的四个点
-        # print(param.canvs.transform)
+            dpg.draw_circle(center=param.field.p[i],radius=param.field.p_radius,fill=[0,255,0,200],parent="canvs",tag=f"p{i}")
+        # 绘制全部内容
         obj.draw_all()
+        # 应用变换矩阵
         dpg.apply_transform("canvs", param.canvs.transform)
+        # 渲染
         dpg.render_dearpygui_frame()
 

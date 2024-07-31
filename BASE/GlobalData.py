@@ -1,6 +1,6 @@
-
+import numpy as np
 vision = None
-camera = None
+camera = np.zeros((1920, 1080,3), np.uint8)
 class ConfigData:
     fps = 0
     zoomrate = 5

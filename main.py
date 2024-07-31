@@ -12,7 +12,6 @@ if __name__ == '__main__':
     except:
         print("Error")
         dpg.destroy_context()
-
     finally:
         dpg.destroy_context()
 
