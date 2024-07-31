@@ -242,7 +242,7 @@ def plot_window():
         Object.plot_line([],[],-1,-1)
 # 画布
 def draw_window():
-    with dpg.drawlist(width=0, height=0,tag ="drawlist"):
+    with dpg.drawlist(width=0, height=0,tag ="drawlist",delay_search=True):
         with dpg.draw_node(tag="bg"):
             pass
         with dpg.draw_node(tag="config"):
