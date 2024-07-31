@@ -5,6 +5,7 @@ import numpy as np
 import BASE.Utils as utils
 import math
 import UI.Components as components
+import VISION.Camera as camera
 # 保存页面布局
 def save_callback(sender, app_data, user_data):
     dpg.save_init_file("dpg_layout.ini")
@@ -15,9 +16,8 @@ def left_mouse_drag_callback(obj):
     if data.PARAM.mouse.click_obj == "canvs":
         pass
     else:
-        pass
-        # show_car_data = obj.show_car_data
-        # obj.set_car(tag = click_name,pos = data.PARAM.mouse.pos)
+        data.PARAM.field.p[int(click_name[-1])] = data.PARAM.mouse.ssl_pos
+
 # 中键拖动事件
 def middle_mouse_drag_callback():
     pass
@@ -71,15 +71,15 @@ def mouse_wheel_handler(sender, app_data):
         world_mouse_y = (mouse_y - param.canvs.translation[1]) / data.PARAM.mouse.scale
         # 根据滚轮值调整缩放比例
         if data.PARAM.mouse.scale >= 0.3:
-            step = 0.05
+            step = 0.15
         else:
-            step = 0.02
+            step = 0.05
         if app_data > 0:
             data.PARAM.mouse.scale += step
         else:
             data.PARAM.mouse.scale -= step
         data.PARAM.mouse.scale = max(0.03, data.PARAM.mouse.scale)
-        data.PARAM.mouse.scale = min(1.2, data.PARAM.mouse.scale)
+        data.PARAM.mouse.scale = min(5.2, data.PARAM.mouse.scale)
         param.canvs.scales = [data.PARAM.mouse.scale, data.PARAM.mouse.scale, 1]
         param.canvs.scale_matrix = dpg.create_scale_matrix(param.canvs.scales)
         # 计算新的平移量，以使缩放后的鼠标位置与缩放前相同
@@ -136,3 +136,12 @@ def swap_items(item1, item2):
     dpg.move_item(item=item2,parent=parent1)
     utils.swap_elements(components.obj.layer_final,item1,item2)
     print(components.obj.layer_final)
+
+def change_Gain_value(sender, app_data, user_data):
+    dpg.set_value("Gain_slider_input",app_data)
+    dpg.set_value("Gain_input",app_data)
+    camera.set_gain(app_data)
+def change_ExposureTime_value(sender, app_data, user_data):
+    dpg.set_value("ExposureTime_slider_input",app_data)
+    dpg.set_value("ExposureTime_input",app_data)
+    camera.set_exposuretime(app_data)

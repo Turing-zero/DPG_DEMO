@@ -34,21 +34,11 @@ def get_debug_data(obj):
                 # print(f"Arc Rectangle: ({msg.arc.rect.point1.x}, {msg.arc.rect.point1.y}) to ({msg.arc.rect.point2.x}, {msg.arc.rect.point2.y}), Start Angle: {msg.arc.start}, Span: {msg.arc.span}")
                 arcs.append([[msg.arc.rect.point1.x,msg.arc.rect.point1.y],[msg.arc.rect.point2.x,msg.arc.rect.point2.y],msg.arc.start,msg.arc.span,msg.color])
                 pass
-            elif msg.type == debugs.Debug_Msg.POLYGON:
-                # print("Polygon Vertices:")
-                # for vertex in msg.polygon.vertex:
-                    # print(f"({vertex.x}, {vertex.y})")
-                pass
             elif msg.type == debugs.Debug_Msg.TEXT:
                 # print(f"Text Position: ({msg.text.pos.x}, {msg.text.pos.y}), Text: {msg.text.text}, Size: {msg.text.size}, Weight: {msg.text.weight}")
                 texts.append([[msg.text.pos.x,-1 * (msg.text.pos.y + 160)],msg.text.text,msg.text.size,msg.color])
                 pass
 
-            elif msg.type == debugs.Debug_Msg.POINTS:
-                # print("Points:")
-                # for point in msg.points.point:
-                #     print(f"({point.x}, {point.y})")
-                pass
             # print(f"RGB Value: {msg.RGB_value}")
         obj.debug_text = texts
         obj.debug_line = lines
@@ -58,7 +48,6 @@ def get_debug_data(obj):
 
 
 def get_vision_data(obj):
-
     VISION_PORT = 41001
     visions = VISION.visionmodule
     vision = visions.VisionModule(VISION_PORT)
